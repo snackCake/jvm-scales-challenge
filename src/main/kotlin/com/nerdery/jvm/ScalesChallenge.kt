@@ -7,15 +7,21 @@ import javax.sound.midi.Sequence
  * @author Josh Klun (jklun@nerdery.com)
  */
 class ScalesChallenge {
-    fun buildScale(note: Note): List<RelativeNote> = listOf(
-            RelativeNote(Note.C),
-            RelativeNote(Note.D),
-            RelativeNote(Note.E),
-            RelativeNote(Note.F),
-            RelativeNote(Note.G),
-            RelativeNote(Note.A, 1),
-            RelativeNote(Note.B, 1),
-            RelativeNote(Note.C, 1))
+    /*
+        This function takes a Note and returns the relative notes for the Major scale.
+        Note - this function was left in so that it is backwards compatible with any code that uses this signature.
+     */
+    fun buildScale(note: Note): List<RelativeNote> {
+        return buildScale(note, ScalePattern.MAJOR_SCALE)
+    }
+
+    /*
+        Builds the scale of relative notes based on the root Note and ScalePattern passed in.
+     */
+    fun buildScale(note: Note, pattern: ScalePattern): List<RelativeNote> {
+        val cc: ChromaticCircle = ChromaticCircle().getInstance()
+        return cc.buildScale(note, pattern)
+    }
 
     fun convertToMidi(notes: List<RelativeNote>): Sequence = NotesMidiGenerator(notes).generateSong()
 
@@ -25,19 +31,26 @@ class ScalesChallenge {
         sequencer.open()
         Thread.sleep(300L)
         sequencer.start()
-        Thread.sleep(5000L)
+        Thread.sleep(10000L)
         sequencer.stop()
         sequencer.close()
     }
 }
 
-val usageMessage = "Enter a key signature. For example: C_FLAT, C, C_SHARP"
+val usageMessage = "Enter a key signature: C_FLAT, C, C_SHARP, etc\nand a scale: MAJOR_SCALE (default), NATURAL_MINOR_SCALE, HARMONIC_MINOR_SCALE"
 
 fun main(args: Array<String>) = println(when (args.size) {
     0 -> usageMessage
     else -> try {
         val challenge = ScalesChallenge()
-        val scale = challenge.buildScale(Note.valueOf(args.first()))
+
+        var scalePattern: ScalePattern = ScalePattern.MAJOR_SCALE
+        if (args.size == 2) {
+            scalePattern = ScalePattern.valueOf(args[1])
+        }
+
+        val scale = challenge.buildScale(Note.valueOf(args.first()), scalePattern)
+
         val sequence = challenge.convertToMidi(scale)
         challenge.playMidi(sequence)
         scale.joinToString()

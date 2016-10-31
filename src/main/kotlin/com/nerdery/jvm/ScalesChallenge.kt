@@ -7,15 +7,14 @@ import javax.sound.midi.Sequence
  * @author Josh Klun (jklun@nerdery.com)
  */
 class ScalesChallenge {
-    fun buildScale(note: Note): List<RelativeNote> = listOf(
-            RelativeNote(Note.C),
-            RelativeNote(Note.D),
-            RelativeNote(Note.E),
-            RelativeNote(Note.F),
-            RelativeNote(Note.G),
-            RelativeNote(Note.A, 1),
-            RelativeNote(Note.B, 1),
-            RelativeNote(Note.C, 1))
+    fun buildScale(note: Note): List<RelativeNote> {
+        return buildScale(note, ScalePattern.MAJOR_SCALE)
+    }
+
+    fun buildScale(note: Note, pattern: ScalePattern): List<RelativeNote> {
+        var cc : ChromaticCircle = ChromaticCircle().getInstance()
+        return cc.buildScale(note, pattern)
+    }
 
     fun convertToMidi(notes: List<RelativeNote>): Sequence = NotesMidiGenerator(notes).generateSong()
 
@@ -25,7 +24,7 @@ class ScalesChallenge {
         sequencer.open()
         Thread.sleep(300L)
         sequencer.start()
-        Thread.sleep(5000L)
+        Thread.sleep(10000L)
         sequencer.stop()
         sequencer.close()
     }
@@ -37,7 +36,9 @@ fun main(args: Array<String>) = println(when (args.size) {
     0 -> usageMessage
     else -> try {
         val challenge = ScalesChallenge()
-        val scale = challenge.buildScale(Note.valueOf(args.first()))
+        //val scale = challenge.buildScale(Note.valueOf(args.first()))
+        val scale = challenge.buildScale(Note.valueOf("C"), ScalePattern.HARMONIC_MINOR_SCALE)
+
         val sequence = challenge.convertToMidi(scale)
         challenge.playMidi(sequence)
         scale.joinToString()
